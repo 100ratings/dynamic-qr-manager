@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QR Manager</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#007AFF">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <style>
+        :root { --primary: #007AFF; --bg: #F2F2F7; --gray: #E5E5EA; --red: #ff3b30; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #000; -webkit-font-smoothing: antialiased; }
+        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; overflow: hidden; }
+        h1, h3 { font-size: 24px; margin-top: 0; margin-bottom: 20px; font-weight: 700; }
+        h3 { font-size: 20px; text-align: center; }
+        
+        .btn { display: block; width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 12px; background: var(--primary); color: white; font-size: 17px; font-weight: 600; cursor: pointer; transition: transform 0.1s, opacity 0.2s; box-sizing: border-box; }
+        .btn:active { transform: scale(0.98); opacity: 0.8; }
+        .btn.secondary { background: var(--gray); color: #000; }
+        .btn.danger { background: var(--red); color: white; }
+        
+        #qrcode-container { margin: 20px auto; cursor: pointer; display: inline-block; position: relative; }
+        #qrcode { max-width: 100%; height: auto !important; }
+        
+        .status-container { margin-top: 15px; min-height: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .status-label { font-size: 13px; color: #8E8E93; margin-bottom: 4px; }
+        .status-url { font-size: 14px; color: #000; word-break: break-all; max-width: 100%; line-height: 1.4; font-weight: 400; padding: 0 10px; }
+        
+        input { width: 100%; padding: 14px; margin: 12px 0; border: 1px solid #C6C6C8; border-radius: 10px; box-sizing: border-box; font-size: 16px; background: #FFF; }
+        hr { border: 0; border-top: 1px solid #E5E5EA; margin: 20px 0; }
+        
+        .qr-hint { font-size: 11px; color: #8E8E93; margin-top: 8px; }
+
+        @media (max-width: 430px) {
+            body { padding: 15px; }
+            .card { padding: 15px; }
+            .status-url { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Gerenciador QR</h1>
+        <div id="qrcode-container" onclick="downloadQR()" title="Clique para baixar em alta qualidade">
+            <canvas id="qrcode"></canvas>
+            <div class="qr-hint">Toque para baixar em PNG (Alta Qualidade)</div>
+        </div>
+        <div class="status-container">
+            <span class="status-label" id="status-label">Destino Atual:</span>
+            <span class="status-url" id="current-url">Carregando...</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Mudar Destino</h3>
+        <button class="btn" onclick="updateLink('https://appclip.apple.com/id?p=com.benjaminvianney.rdigit.spectator')">RDigit</button>
+        <button class="btn" onclick="updateLink('https://tinyhost.pw/onyx/Uhakl7jmQf&key=XlxAX0s%2BH0dBXUZXCm&p=4382')">Onyx</button>
+        <button class="btn" onclick="updateLink('https://chatgpt.com/g/g-69ae2823537481919d8b4ec5756dc582-c-h-a-t-g-p-t')">GPT</button>
+        <hr>
+        <input type="url" id="custom-url" placeholder="https://link-personalizado.com">
+        <button class="btn secondary" onclick="updateLink(document.getElementById('custom-url').value)">Definir Personalizado</button>
+        <hr>
+        <button class="btn danger" onclick="clearToken()">Trocar Token do GitHub</button>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO KVDB (INSTANTÂNEO)
+        const BUCKET_ID = 'qr_manager_100ratings'; 
+        const KVDB_URL = `https://kvdb.io/${BUCKET_ID}/targetUrl`;
+
+        const GITHUB_USER = '100ratings';
+        const GITHUB_REPO = 'dynamic-qr-manager';
+        let GITHUB_TOKEN = localStorage.getItem('gh_token') || '';
+
+        if (!GITHUB_TOKEN) {
+            GITHUB_TOKEN = prompt("Por favor, insira seu GitHub Token:");
+            if (GITHUB_TOKEN) {
+                localStorage.setItem('gh_token', GITHUB_TOKEN);
+            }
+        }
+        
+        const FILE_PATH = 'config.json';
+        const REDIRECT_URL = `https://${GITHUB_USER}.github.io/${GITHUB_REPO}/`;
+
+        QRCode.toCanvas(document.getElementById('qrcode'), REDIRECT_URL, { 
+            width: 220,
+            margin: 2,
+            color: { dark: '#000000', light: '#ffffff' }
+        });
+
+        function downloadQR() {
+            const tempCanvas = document.createElement('canvas');
+            QRCode.toCanvas(tempCanvas, REDIRECT_URL, { width: 2000, margin: 1 }, function (error) {
+                if (error) return console.error(error);
+                const link = document.createElement('a');
+                link.download = 'qrcode-high-res.png';
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        async function loadCurrentUrl() {
+            try {
+                // Tenta carregar do KVdb primeiro (é o mais atualizado)
+                const res = await fetch(KVDB_URL, { cache: "no-store" });
+                if (res.ok) {
+                    const url = await res.text();
+                    if (url && url.trim()) {
+                        document.getElementById('current-url').innerText = url.trim();
+                    } else {
+                        throw new Error('URL vazia no KVdb');
+                    }
+                } else {
+                    // Fallback para o arquivo estático
+                    const res2 = await fetch(`config.json?t=${Date.now()}`);
+                    const data = await res2.json();
+                    if (data.targetUrl) {
+                        document.getElementById('current-url').innerText = data.targetUrl;
+                    } else {
+                        throw new Error('targetUrl não encontrado');
+                    }
+                }
+            } catch (e) {
+                console.error("Erro ao carregar URL:", e);
+                document.getElementById('current-url').innerText = "Erro ao carregar";
+            }
+        }
+        loadCurrentUrl();
+
+        async function updateLink(newUrl) {
+            if (!newUrl || !newUrl.trim()) return;
+            
+            const label = document.getElementById('status-label');
+            const urlText = document.getElementById('current-url');
+            
+            const oldUrl = urlText.innerText;
+            label.innerText = "Atualizando...";
+            urlText.innerText = newUrl;
+            urlText.style.color = "#007AFF";
+
+            try {
+                // 1. ATUALIZAÇÃO INSTANTÂNEA (KVdb)
+                // Não precisa de SHA, é um simples POST/PUT
+                const kvRes = await fetch(KVDB_URL, {
+                    method: 'POST',
+                    body: newUrl.trim()
+                });
+
+                if (kvRes.ok) {
+                    label.innerText = "Atualizado (Instantâneo)!";
+                    urlText.style.color = "#4CD964"; // Verde para sucesso instantâneo
+                }
+
+                // 2. ATUALIZAÇÃO DE BACKUP (GitHub) - Continua sendo feita em background
+                // Isso garante que se o KVdb cair, o sistema ainda funciona
+                const getRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
+                    headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+                });
+                const fileData = await getRes.json();
+                const sha = fileData.sha;
+
+                const content = btoa(JSON.stringify({ targetUrl: newUrl }, null, 2));
+                await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Sync to ${newUrl}`,
+                        content: content,
+                        sha: sha
+                    })
+                });
+
+                // Finaliza feedback
+                setTimeout(() => {
+                    label.innerText = "Atualizado para:";
+                    urlText.style.color = "#000";
+                }, 2000);
+
+            } catch (err) {
+                console.error("Erro na sincronização:", err);
+                // Mesmo com erro no GitHub, se o KVdb funcionou, o redirecionamento já está valendo
+                label.innerText = "Atualizado para:";
+                urlText.style.color = "#000";
+            }
+        }
+
+        function clearToken() {
+            if(confirm("Deseja trocar o Token do GitHub?")) {
+                localStorage.removeItem('gh_token'); 
+                location.reload();
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
