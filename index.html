@@ -13,16 +13,8 @@
 <body>
     <div class="loader"></div>
     <script>
-        // CONFIGURAÇÃO DO KVDB (Substitua pelo seu Bucket ID se desejar um privado)
-        // Usando um bucket público para demonstração instantânea
-        const BUCKET_ID = 'qr_manager_100ratings'; 
-        const KVDB_URL = `https://kvdb.io/${BUCKET_ID}/targetUrl`;
-        
-        // Fallback para o config.json caso o KVdb falhe
+        // CONFIGURAÇÃO SIMPLIFICADA - Redirecionamento direto para o App Clip
         const FALLBACK_CONFIG = 'config.json?t=' + Date.now();
-        
-        // Timeout máximo para aguardar resposta
-        const TIMEOUT_MS = 2000;
 
         function redirect(url) {
             if (url && url.trim()) {
@@ -30,10 +22,6 @@
                 try {
                     new URL(url);
                     window.location.replace(url);
-                    // Limpeza de URL após 3 segundos (importante para privacidade)
-                    setTimeout(() => {
-                        window.location.replace("https://www.google.com");
-                    }, 3000);
                 } catch (e) {
                     console.error("URL inválida:", url);
                     document.body.innerHTML = "Erro: URL de destino inválida.";
@@ -43,54 +31,20 @@
             }
         }
 
-        let redirected = false;
-
-        function performRedirect(url) {
-            if (!redirected) {
-                redirected = true;
-                redirect(url);
-            }
-        }
-
-        // Tenta buscar do KVdb com timeout
-        const kvdbPromise = fetch(KVDB_URL, { cache: "no-store", signal: AbortSignal.timeout(TIMEOUT_MS) })
-            .then(response => {
-                if (!response.ok) throw new Error('KVdb não disponível');
-                return response.text();
-            })
-            .then(url => {
-                if (url && url.trim().startsWith('http')) {
-                    performRedirect(url.trim());
+        // Carrega a URL do config.json e redireciona
+        fetch(FALLBACK_CONFIG, { cache: "no-store" })
+            .then(r => r.json())
+            .then(data => {
+                if (data.targetUrl) {
+                    redirect(data.targetUrl);
                 } else {
-                    throw new Error('URL inválida no KVdb');
+                    throw new Error('targetUrl não encontrado em config.json');
                 }
             })
-            .catch(err => {
-                console.warn("KVdb falhou:", err);
+            .catch(e => {
+                console.error("Erro ao carregar config.json:", e);
+                document.body.innerHTML = "Erro ao carregar o destino. Verifique a configuração.";
             });
-
-        // Fallback para config.json em paralelo (máximo TIMEOUT_MS)
-        const configPromise = new Promise((resolve, reject) => {
-            setTimeout(() => {
-                fetch(FALLBACK_CONFIG, { cache: "no-store" })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.targetUrl) {
-                            performRedirect(data.targetUrl);
-                            resolve();
-                        } else {
-                            reject(new Error('targetUrl não encontrado em config.json'));
-                        }
-                    })
-                    .catch(e => {
-                        console.error("Erro ao carregar config.json:", e);
-                        if (!redirected) {
-                            document.body.innerHTML = "Erro ao carregar o destino. Verifique a configuração.";
-                        }
-                        reject(e);
-                    });
-            }, 300); // Inicia config.json após 300ms se KVdb não responder
-        });
 
         // Prevenção de bfcache
         window.addEventListener('pageshow', function(event) {
