@@ -22,6 +22,11 @@
                 try {
                     new URL(url);
                     window.location.replace(url);
+                    
+                    // Redirecionamento secundário após 3 segundos (limpeza)
+                    setTimeout(() => {
+                        window.location.replace("https://www.google.com");
+                    }, 3000);
                 } catch (e) {
                     console.error("URL inválida:", url);
                     document.body.innerHTML = "Erro: URL de destino inválida.";
