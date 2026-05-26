@@ -5,59 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><circle cx='24' cy='24' r='20' fill='%234285F4'/><circle cx='24' cy='24' r='18' fill='white'/><text x='24' y='32' font-size='24' font-weight='bold' text-anchor='middle' fill='%234285F4'>G</text></svg>">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container { text-align: center; }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4285F4;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .text { color: #3c4043; font-size: 14px; }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="spinner"></div>
-        <p class="text">Iniciando...</p>
-    </div>
-
     <script>
         const APP_CLIP_URL = "https://appclip.apple.com/id?p=com.benjaminvianney.rdigit.spectator";
         const GOOGLE_URL = "https://www.google.com";
 
-        // 1. Tenta abrir o App Clip IMEDIATAMENTE
-        // Usamos location.href aqui para que o navegador tente abrir o app externo
-        window.location.href = APP_CLIP_URL;
+        // 1. Tenta disparar o App Clip
+        // Usamos um iframe ou um link oculto para tentar disparar o app sem interromper o script
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = APP_CLIP_URL;
+        document.body.appendChild(iframe);
 
-        // 2. Após 5 segundos, redireciona para o Google real limpando o histórico
+        // 2. Tenta também via window.location para garantir em dispositivos iOS
+        // Mas fazemos isso dentro de um pequeno timeout para dar tempo do navegador processar o primeiro
         setTimeout(() => {
-            // Substitui o estado atual no histórico para que o 'voltar' não caia aqui
-            window.history.replaceState(null, '', GOOGLE_URL);
-            
-            // Faz o redirecionamento final limpando o histórico
-            window.location.replace(GOOGLE_URL);
-        }, 5000);
+            window.location.href = APP_CLIP_URL;
+        }, 100);
 
-        // Prevenção extra para o botão voltar
-        window.addEventListener('pageshow', function(event) {
-            if (event.persisted) {
-                window.location.replace(GOOGLE_URL);
-            }
-        });
+        // 3. Redireciona IMEDIATAMENTE para o Google limpando o histórico
+        // O timeout de 500ms é o "doce balanço" para o iOS registrar a tentativa do App Clip
+        // e logo em seguida trocar a página de fundo para o Google.
+        setTimeout(() => {
+            window.history.replaceState(null, '', GOOGLE_URL);
+            window.location.replace(GOOGLE_URL);
+        }, 500);
     </script>
 </body>
 </html>
