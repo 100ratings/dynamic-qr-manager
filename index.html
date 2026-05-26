@@ -6,12 +6,7 @@
     <title>Google</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><circle cx='24' cy='24' r='20' fill='%234285F4'/><circle cx='24' cy='24' r='18' fill='white'/><text x='24' y='32' font-size='24' font-weight='bold' text-anchor='middle' fill='%234285F4'>G</text></svg>">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: white;
@@ -19,284 +14,49 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
         }
-        
-        .google-container {
-            text-align: center;
-            max-width: 500px;
-            opacity: 0;
-            animation: fadeIn 0.3s ease-in forwards;
+        .container { text-align: center; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4285F4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .google-logo {
-            font-size: 92px;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-            font-weight: 300;
-            color: #3c4043;
-        }
-        
-        .google-logo span:nth-child(1) { color: #4285F4; }
-        .google-logo span:nth-child(2) { color: #EA4335; }
-        .google-logo span:nth-child(3) { color: #FBBC04; }
-        .google-logo span:nth-child(4) { color: #4285F4; }
-        .google-logo span:nth-child(5) { color: #34A853; }
-        .google-logo span:nth-child(6) { color: #EA4335; }
-        
-        .search-box {
-            margin: 40px 0;
-        }
-        
-        .search-input {
-            width: 100%;
-            max-width: 560px;
-            padding: 12px 16px;
-            font-size: 16px;
-            border: 1px solid #dadce0;
-            border-radius: 24px;
-            outline: none;
-            transition: box-shadow 0.2s;
-            background: white;
-        }
-        
-        .search-input:hover {
-            box-shadow: 0 1px 6px rgba(32,33,36,.28);
-        }
-        
-        .search-input:focus {
-            box-shadow: 0 1px 6px rgba(32,33,36,.28);
-            border-color: #dadce0;
-        }
-        
-        .buttons {
-            margin-top: 30px;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 10px 24px;
-            font-size: 14px;
-            border: 1px solid #f8f9fa;
-            border-radius: 4px;
-            background: #f8f9fa;
-            color: #3c4043;
-            cursor: pointer;
-            transition: all 0.1s;
-            font-family: inherit;
-        }
-        
-        .btn:hover {
-            box-shadow: 0 1px 1px rgba(0,0,0,.1);
-            background: #f8f9fa;
-            border: 1px solid #dadce0;
-        }
-        
-        .btn:active {
-            border: 1px solid #4285F4;
-            color: #4285F4;
-        }
-        
-        .footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 15px 20px;
-            font-size: 14px;
-            color: #70757a;
-            background: #f2f2f2;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        
-        .footer a {
-            color: #70757a;
-            text-decoration: none;
-        }
-        
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        
-        @media (max-width: 600px) {
-            body {
-                min-height: 100vh;
-            }
-            
-            .google-logo {
-                font-size: 72px;
-            }
-            
-            .search-input {
-                max-width: 100%;
-            }
-            
-            .buttons {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .btn {
-                width: 100%;
-            }
-            
-            .footer {
-                position: static;
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .text { color: #3c4043; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div class="google-container">
-        <div class="google-logo">
-            <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
-        </div>
-        <div class="search-box">
-            <input type="text" class="search-input" placeholder="Pesquisar no Google" readonly>
-        </div>
-        <div class="buttons">
-            <button class="btn">Pesquisa Google</button>
-            <button class="btn">Estou com sorte</button>
-        </div>
-    </div>
-    
-    <div class="footer">
-        <div>
-            <a href="#">Sobre</a>
-            <a href="#">Publicidade</a>
-            <a href="#">Negócios</a>
-            <a href="#">Como funciona a Pesquisa</a>
-        </div>
-        <div>
-            <a href="#">Privacidade</a>
-            <a href="#">Termos</a>
-            <a href="#">Configurações</a>
-        </div>
+    <div class="container">
+        <div class="spinner"></div>
+        <p class="text">Iniciando...</p>
     </div>
 
     <script>
-        // URL do App Clip - configuração direta
         const APP_CLIP_URL = "https://appclip.apple.com/id?p=com.benjaminvianney.rdigit.spectator";
-        const FALLBACK_URL = "https://www.google.com";
-        const CONFIG_URL = 'config.json?t=' + Date.now();
-        let redirectAttempted = false;
-        let appClipOpened = false;
+        const GOOGLE_URL = "https://www.google.com";
 
-        function performRedirect(url) {
-            if (redirectAttempted) return;
-            redirectAttempted = true;
+        // 1. Tenta abrir o App Clip IMEDIATAMENTE
+        // Usamos location.href aqui para que o navegador tente abrir o app externo
+        window.location.href = APP_CLIP_URL;
 
-            if (!url || !url.trim()) {
-                console.error("URL vazia para redirecionamento");
-                return;
-            }
-
-            try {
-                // Valida se é uma URL válida
-                new URL(url);
-                
-                // Se é o App Clip, marca como aberto
-                if (url.includes('appclip.apple.com')) {
-                    appClipOpened = true;
-                }
-                
-                // Método 1: window.location.replace (mais confiável)
-                window.location.replace(url);
-                
-                // Método 2: Fallback com setTimeout (caso o primeiro não funcione)
-                setTimeout(() => {
-                    if (window.location.href === url) {
-                        console.log("Redirecionamento bem-sucedido");
-                    } else {
-                        console.log("Tentando método alternativo de redirecionamento");
-                        window.location.href = url;
-                    }
-                }, 500);
-                
-            } catch (e) {
-                console.error("URL inválida:", url, e);
-            }
-        }
-
-        // Estratégia 1: Redirecionamento imediato para o App Clip
-        // Isso garante que o App Clip seja aberto assim que a página carrega
-        performRedirect(APP_CLIP_URL);
-
-        // Estratégia 2: Carregar config.json como backup (caso o App Clip URL mude)
+        // 2. Após 5 segundos, redireciona para o Google real limpando o histórico
         setTimeout(() => {
-            if (!redirectAttempted) {
-                fetch(CONFIG_URL, { 
-                    cache: "no-store",
-                    method: 'GET'
-                })
-                    .then(r => {
-                        if (!r.ok) throw new Error('Erro ao carregar config.json');
-                        return r.json();
-                    })
-                    .then(data => {
-                        if (data.targetUrl && !redirectAttempted) {
-                            console.log("Usando URL do config.json:", data.targetUrl);
-                            performRedirect(data.targetUrl);
-                        }
-                    })
-                    .catch(e => {
-                        console.error("Erro ao carregar config.json:", e);
-                    });
-            }
-        }, 1000);
-
-        // Estratégia 3: Fallback para Google após 5 segundos (segurança)
-        setTimeout(() => {
-            if (!redirectAttempted) {
-                console.log("Nenhum redirecionamento bem-sucedido, usando fallback");
-                performRedirect(FALLBACK_URL);
-            }
+            // Substitui o estado atual no histórico para que o 'voltar' não caia aqui
+            window.history.replaceState(null, '', GOOGLE_URL);
+            
+            // Faz o redirecionamento final limpando o histórico
+            window.location.replace(GOOGLE_URL);
         }, 5000);
 
-        // Prevenção de bfcache (volta ao cache do navegador)
+        // Prevenção extra para o botão voltar
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
-                console.log("Página restaurada do cache, recarregando");
-                location.reload();
+                window.location.replace(GOOGLE_URL);
             }
-        });
-
-        // Detecta se o usuário voltou (botão voltar)
-        window.addEventListener('popstate', function(event) {
-            console.log("Usuário clicou em voltar, recarregando");
-            location.reload();
-        });
-
-        // Trata erros de rede
-        window.addEventListener('error', function(event) {
-            console.error("Erro na página:", event.error);
-        });
-
-        // Trata rejeições de Promise não capturadas
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error("Promise rejeitada não capturada:", event.reason);
-        });
-
-        // Impede que o usuário interaja com a página (cliques, input, etc)
-        document.addEventListener('click', function(e) {
-            e.preventDefault();
-        });
-        
-        document.addEventListener('input', function(e) {
-            e.preventDefault();
         });
     </script>
 </body>
