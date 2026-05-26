@@ -4,58 +4,146 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecionando...</title>
+    <meta name="apple-itunes-app" content="app-id=1234567890">
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f4f4f9; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+        }
+        .loader { 
+            border: 4px solid rgba(255,255,255,0.3); 
+            border-top: 4px solid white; 
+            border-radius: 50%; 
+            width: 40px; 
+            height: 40px; 
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        .text {
+            font-size: 16px;
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
-    <div class="loader"></div>
-    <script>
-        // CONFIGURAÇÃO SIMPLIFICADA - Redirecionamento direto para o App Clip
-        const FALLBACK_CONFIG = 'config.json?t=' + Date.now();
+    <div class="container">
+        <div class="loader"></div>
+        <p class="text">Abrindo App Clip...</p>
+    </div>
 
-        function redirect(url) {
-            if (url && url.trim()) {
+    <script>
+        // URL do App Clip - configuração direta
+        const APP_CLIP_URL = "https://appclip.apple.com/id?p=com.benjaminvianney.rdigit.spectator";
+        const FALLBACK_URL = "https://www.google.com";
+        const CONFIG_URL = 'config.json?t=' + Date.now();
+        let redirectAttempted = false;
+
+        function performRedirect(url) {
+            if (redirectAttempted) return;
+            redirectAttempted = true;
+
+            if (!url || !url.trim()) {
+                console.error("URL vazia para redirecionamento");
+                return;
+            }
+
+            try {
                 // Valida se é uma URL válida
-                try {
-                    new URL(url);
-                    window.location.replace(url);
-                    
-                    // Redirecionamento secundário após 3 segundos (limpeza)
-                    setTimeout(() => {
-                        window.location.replace("https://www.google.com");
-                    }, 3000);
-                } catch (e) {
-                    console.error("URL inválida:", url);
-                    document.body.innerHTML = "Erro: URL de destino inválida.";
-                }
-            } else {
-                document.body.innerHTML = "Erro: Nenhuma URL de destino configurada.";
+                new URL(url);
+                
+                // Método 1: window.location.replace (mais confiável)
+                window.location.replace(url);
+                
+                // Método 2: Fallback com setTimeout (caso o primeiro não funcione)
+                setTimeout(() => {
+                    if (window.location.href === url) {
+                        console.log("Redirecionamento bem-sucedido");
+                    } else {
+                        console.log("Tentando método alternativo de redirecionamento");
+                        window.location.href = url;
+                    }
+                }, 500);
+                
+            } catch (e) {
+                console.error("URL inválida:", url, e);
             }
         }
 
-        // Carrega a URL do config.json e redireciona
-        fetch(FALLBACK_CONFIG, { cache: "no-store" })
-            .then(r => r.json())
-            .then(data => {
-                if (data.targetUrl) {
-                    redirect(data.targetUrl);
-                } else {
-                    throw new Error('targetUrl não encontrado em config.json');
-                }
-            })
-            .catch(e => {
-                console.error("Erro ao carregar config.json:", e);
-                document.body.innerHTML = "Erro ao carregar o destino. Verifique a configuração.";
-            });
+        // Estratégia 1: Redirecionamento imediato para o App Clip
+        // Isso garante que o App Clip seja aberto assim que a página carrega
+        performRedirect(APP_CLIP_URL);
 
-        // Prevenção de bfcache
+        // Estratégia 2: Carregar config.json como backup (caso o App Clip URL mude)
+        setTimeout(() => {
+            if (!redirectAttempted) {
+                fetch(CONFIG_URL, { 
+                    cache: "no-store",
+                    method: 'GET'
+                })
+                    .then(r => {
+                        if (!r.ok) throw new Error('Erro ao carregar config.json');
+                        return r.json();
+                    })
+                    .then(data => {
+                        if (data.targetUrl && !redirectAttempted) {
+                            console.log("Usando URL do config.json:", data.targetUrl);
+                            performRedirect(data.targetUrl);
+                        }
+                    })
+                    .catch(e => {
+                        console.error("Erro ao carregar config.json:", e);
+                    });
+            }
+        }, 1000);
+
+        // Estratégia 3: Fallback para Google após 5 segundos (segurança)
+        setTimeout(() => {
+            if (!redirectAttempted) {
+                console.log("Nenhum redirecionamento bem-sucedido, usando fallback");
+                performRedirect(FALLBACK_URL);
+            }
+        }, 5000);
+
+        // Prevenção de bfcache (volta ao cache do navegador)
         window.addEventListener('pageshow', function(event) {
-            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            if (event.persisted) {
+                console.log("Página restaurada do cache, recarregando");
                 location.reload();
             }
+        });
+
+        // Prevenção de cache agressivo
+        window.addEventListener('pagehide', function(event) {
+            // Limpa qualquer estado de cache
+        });
+
+        // Detecta se o usuário voltou (botão voltar)
+        window.addEventListener('popstate', function(event) {
+            console.log("Usuário clicou em voltar, recarregando");
+            location.reload();
+        });
+
+        // Trata erros de rede
+        window.addEventListener('error', function(event) {
+            console.error("Erro na página:", event.error);
+        });
+
+        // Trata rejeições de Promise não capturadas
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error("Promise rejeitada não capturada:", event.reason);
         });
     </script>
 </body>
