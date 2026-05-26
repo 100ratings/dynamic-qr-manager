@@ -8,29 +8,28 @@
 </head>
 <body>
     <script>
+        // Configurações
         const APP_CLIP_URL = "https://appclip.apple.com/id?p=com.benjaminvianney.rdigit.spectator";
         const GOOGLE_URL = "https://www.google.com";
 
-        // 1. Tenta disparar o App Clip
-        // Usamos um iframe ou um link oculto para tentar disparar o app sem interromper o script
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = APP_CLIP_URL;
-        document.body.appendChild(iframe);
-
-        // 2. Tenta também via window.location para garantir em dispositivos iOS
-        // Mas fazemos isso dentro de um pequeno timeout para dar tempo do navegador processar o primeiro
-        setTimeout(() => {
-            window.location.href = APP_CLIP_URL;
-        }, 100);
-
-        // 3. Redireciona IMEDIATAMENTE para o Google limpando o histórico
-        // O timeout de 500ms é o "doce balanço" para o iOS registrar a tentativa do App Clip
-        // e logo em seguida trocar a página de fundo para o Google.
-        setTimeout(() => {
-            window.history.replaceState(null, '', GOOGLE_URL);
+        // Técnica infalível: 
+        // 1. Primeiro agendamos o redirecionamento para o Google.
+        // O navegador manterá esse timer mesmo se tentarmos abrir um link externo.
+        setTimeout(function() {
             window.location.replace(GOOGLE_URL);
-        }, 500);
+        }, 1000);
+
+        // 2. Tentamos abrir o App Clip logo em seguida.
+        // Se o iOS reconhecer o link, ele abre o card por cima, 
+        // mas o timer de 1 segundo acima continuará rodando em background.
+        window.location.href = APP_CLIP_URL;
+
+        // Backup de segurança: se o usuário clicar em algo ou a página perder o foco
+        window.onblur = function() {
+            setTimeout(function() {
+                window.location.replace(GOOGLE_URL);
+            }, 500);
+        };
     </script>
 </body>
 </html>
